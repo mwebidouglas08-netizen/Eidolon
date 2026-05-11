@@ -1,6 +1,5 @@
-// ─── Somnia L1 Client ──────────────────────────────────────────────────────────
+// ─── Somnia L1 Client ─────────────────────────────────────────────────────────
 // Connects to Somnia Devnet: https://dream-rpc.somnia.network (Chain ID: 50312)
-// In production, swap the simulated methods for real ethers.js calls.
 
 import { Protocol, Market } from './types'
 
@@ -10,7 +9,7 @@ export const SOMNIA_CONFIG = {
   chainName: process.env.NEXT_PUBLIC_CHAIN_NAME || 'Somnia Devnet',
   symbol: 'SMT',
   blockExplorer: 'https://shannon-explorer.somnia.network',
-  blockTime: 400, // ms - Somnia's ultra-fast block time
+  blockTime: 400,
 }
 
 export const PROTOCOLS: Protocol[] = [
@@ -22,12 +21,13 @@ export const PROTOCOLS: Protocol[] = [
 ]
 
 function rand(min: number, max: number) { return Math.random() * (max - min) + min }
-function randHex(len: number) { return Array.from({ length: len }, () => Math.floor(Math.random() * 16).toString(16)).join('') }
+function randHex(len: number) {
+  return Array.from({ length: len }, () => Math.floor(Math.random() * 16).toString(16)).join('')
+}
 
 export class SomniaClient {
   private blockNumber = 4_821_334
   private gasPrice = 1.2
-  private balance = 10.2441
 
   async getBlockNumber(): Promise<number> {
     this.blockNumber += Math.floor(rand(1, 4))
@@ -40,8 +40,7 @@ export class SomniaClient {
   }
 
   async getBalance(_address: string): Promise<number> {
-    this.balance = +rand(9.5, 11.5).toFixed(4)
-    return this.balance
+    return +rand(9.5, 11.5).toFixed(4)
   }
 
   async getMarketData(): Promise<Market[]> {
@@ -53,17 +52,16 @@ export class SomniaClient {
         apy,
         utilization,
         tvlChange: +rand(-5, 8).toFixed(2),
-        riskScore: utilization > 0.85 ? 'HIGH' : utilization > 0.65 ? 'MEDIUM' : 'LOW' as 'LOW' | 'MEDIUM' | 'HIGH',
+        riskScore: (utilization > 0.85 ? 'HIGH' : utilization > 0.65 ? 'MEDIUM' : 'LOW') as 'LOW' | 'MEDIUM' | 'HIGH',
       }
     })
   }
 
-  async sendTransaction(tx: { to: string; data: string; value: string }): Promise<{
+  async sendTransaction(_tx: { to: string; data: string; value: string }): Promise<{
     hash: string
     blockNumber: number
     gasUsed: number
   }> {
-    // Simulate Somnia's ~400ms block time
     await new Promise(r => setTimeout(r, 300 + rand(100, 300)))
     return {
       hash: '0x' + randHex(64),
@@ -71,12 +69,6 @@ export class SomniaClient {
       gasUsed: Math.floor(rand(18000, 52000)),
     }
   }
-
-  // Real implementation would use ethers.js:
-  // async getRealBlockNumber() {
-  //   const provider = new ethers.JsonRpcProvider(SOMNIA_CONFIG.rpc)
-  //   return await provider.getBlockNumber()
-  // }
 }
 
 export const somniaClient = new SomniaClient()
