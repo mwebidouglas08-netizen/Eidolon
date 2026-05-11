@@ -9,7 +9,7 @@ export default function HexEmblem({ running, size = 64 }: Props) {
       width={size}
       height={size}
       viewBox="0 0 100 100"
-      className={running ? 'animate-pulse-slow' : ''}
+      style={{ animation: running ? 'pulse 2s cubic-bezier(0.4,0,0.6,1) infinite' : undefined }}
     >
       <defs>
         <radialGradient id="hexGlow" cx="50%" cy="50%" r="50%">
@@ -48,18 +48,25 @@ export default function HexEmblem({ running, size = 64 }: Props) {
 
       {/* Agent dots */}
       <circle cx="50" cy="12" r="3" fill="#378ADD">
-        {running && <animate attributeName="opacity" values="1;0.3;1" dur="1.2s" repeatCount="indefinite" />}
+        {running && (
+          <animate attributeName="opacity" values="1;0.3;1" dur="1.2s" repeatCount="indefinite" />
+        )}
       </circle>
       <circle cx="81" cy="68" r="3" fill="#C17B2E">
-        {running && <animate attributeName="opacity" values="1;0.3;1" dur="1.2s" begin="0.4s" repeatCount="indefinite" />}
+        {running && (
+          <animate attributeName="opacity" values="1;0.3;1" dur="1.2s" begin="0.4s" repeatCount="indefinite" />
+        )}
       </circle>
       <circle cx="19" cy="68" r="3" fill="#1D9E75">
-        {running && <animate attributeName="opacity" values="1;0.3;1" dur="1.2s" begin="0.8s" repeatCount="indefinite" />}
+        {running && (
+          <animate attributeName="opacity" values="1;0.3;1" dur="1.2s" begin="0.8s" repeatCount="indefinite" />
+        )}
       </circle>
 
-      {/* Center ⬡ */}
+      {/* Center symbol */}
       <text
-        x="50" y="57"
+        x="50"
+        y="57"
         textAnchor="middle"
         fontSize="24"
         fill="#C17B2E"
