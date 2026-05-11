@@ -1,9 +1,9 @@
 import { AgentStep, AgentStatus } from '../../lib/types'
 
 const AGENTS = [
-  { name: 'DataAgent'     as const, color: '#378ADD', desc: 'Fetches block, gas, balances & APYs from Somnia L1' },
-  { name: 'DecisionAgent' as const, color: '#C17B2E', desc: 'Reasons about yield delta, risk & gas cost' },
-  { name: 'ExecutorAgent' as const, color: '#1D9E75', desc: 'Signs and broadcasts transactions on-chain' },
+  { name: 'DataAgent'      as const, color: '#378ADD', desc: 'Fetches block, gas, balances & APYs from Somnia L1' },
+  { name: 'DecisionAgent'  as const, color: '#C17B2E', desc: 'Reasons about yield delta, risk & gas cost' },
+  { name: 'ExecutorAgent'  as const, color: '#1D9E75', desc: 'Signs and broadcasts transactions on-chain' },
 ]
 
 interface Props {
@@ -15,7 +15,7 @@ interface Props {
   running: boolean
 }
 
-export default function AgentPipeline({ steps, status, onRun, onToggleAuto, autoMode, running }: Props) {
+export default function AgentPipeline({ steps, onRun, onToggleAuto, autoMode, running }: Props) {
   return (
     <div className="card p-4 flex flex-col gap-4">
       <div className="flex items-center justify-between">
@@ -39,7 +39,6 @@ export default function AgentPipeline({ steps, status, onRun, onToggleAuto, auto
                 ? 'bg-gold/10 border-gold/20 text-gold/60 cursor-not-allowed'
                 : 'bg-gold/15 border-gold/40 text-gold-light hover:bg-gold/25 hover:border-gold/60'
             }`}
-            style={{ animation: running ? undefined : undefined }}
           >
             {running ? '⟳ Running...' : '▶ Run Cycle'}
           </button>
@@ -50,8 +49,8 @@ export default function AgentPipeline({ steps, status, onRun, onToggleAuto, auto
         {AGENTS.map((agent, idx) => {
           const step = steps[agent.name]
           const isRunning = step?.status === 'running'
-          const isDone = step?.status === 'done'
-          const isError = step?.status === 'error'
+          const isDone    = step?.status === 'done'
+          const isError   = step?.status === 'error'
 
           return (
             <div key={agent.name} className="flex gap-3">
@@ -71,15 +70,20 @@ export default function AgentPipeline({ steps, status, onRun, onToggleAuto, auto
               </div>
 
               {/* Content */}
-              <div className={`flex-1 pb-3 ${idx < AGENTS.length - 1 ? '' : ''}`}>
+              <div className="flex-1 pb-3">
                 <div className="flex items-center gap-2 mb-0.5">
-                  <span className="text-[11px] font-mono font-medium tracking-widest" style={{ color: isDone || isRunning ? agent.color : '#7B9AB0' }}>
+                  <span
+                    className="text-[11px] font-mono font-medium tracking-widest"
+                    style={{ color: isDone || isRunning ? agent.color : '#7B9AB0' }}
+                  >
                     {agent.name}
                   </span>
-                  {isRunning && <span className="badge badge-gold text-[9px]" style={{ animation: 'pulse 1s infinite' }}>RUNNING</span>}
-                  {isDone && <span className="badge badge-green text-[9px]">DONE</span>}
-                  {isError && <span className="badge badge-red text-[9px]">ERROR</span>}
-                  {!step && <span className="badge badge-muted text-[9px]">IDLE</span>}
+                  {isRunning && (
+                    <span className="badge badge-gold text-[9px]" style={{ animation: 'pulse 1s infinite' }}>RUNNING</span>
+                  )}
+                  {isDone    && <span className="badge badge-green text-[9px]">DONE</span>}
+                  {isError   && <span className="badge badge-red   text-[9px]">ERROR</span>}
+                  {!step     && <span className="badge badge-muted text-[9px]">IDLE</span>}
                 </div>
                 <p className="text-[11px] text-muted leading-relaxed font-mono">
                   {step?.message || agent.desc}
