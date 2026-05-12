@@ -1,15 +1,10 @@
-// ─── useAgent Hook ─────────────────────────────────────────────────────────────
 import { useState, useEffect, useRef, useCallback } from 'react'
-import {
-  AgentStats, AgentStep, AgentStatus, LogEntry,
-  HistoryEntry, AgentCycleResult
-} from '../lib/types'
+import { AgentStats, AgentStep, AgentStatus, LogEntry, HistoryEntry, AgentCycleResult } from '../lib/types'
 
 function uid() { return `${Date.now()}_${Math.random().toString(36).slice(2, 7)}` }
 function fmtTime() {
   const n = new Date()
-  return [n.getHours(), n.getMinutes(), n.getSeconds()]
-    .map(x => x.toString().padStart(2, '0')).join(':')
+  return [n.getHours(), n.getMinutes(), n.getSeconds()].map(x => x.toString().padStart(2, '0')).join(':')
 }
 
 const DEFAULT_STATS: AgentStats = {
@@ -19,21 +14,20 @@ const DEFAULT_STATS: AgentStats = {
 }
 
 export function useAgent() {
-  const [status, setStatus]           = useState<AgentStatus>('idle')
-  const [autoMode, setAutoModeState]  = useState(false)
-  const [steps, setSteps]             = useState<Record<string, AgentStep>>({})
-  const [logs, setLogs]               = useState<LogEntry[]>([])
-  const [stats, setStats]             = useState<AgentStats>(DEFAULT_STATS)
-  const [lastResult, setLastResult]   = useState<AgentCycleResult | null>(null)
-  const [history, setHistory]         = useState<HistoryEntry[]>([])
-  const [apyHistory, setApyHistory]   = useState<Record<string, number[]>>({})
+  const [status,     setStatus]     = useState<AgentStatus>('idle')
+  const [autoMode,   setAutoMode]   = useState(false)
+  const [steps,      setSteps]      = useState<Record<string, AgentStep>>({})
+  const [logs,       setLogs]       = useState<LogEntry[]>([])
+  const [stats,      setStats]      = useState<AgentStats>(DEFAULT_STATS)
+  const [lastResult, setLastResult] = useState<AgentCycleResult | null>(null)
+  const [history,    setHistory]    = useState<HistoryEntry[]>([])
+  const [apyHistory, setApyHistory] = useState<Record<string, number[]>>({})
 
   const autoRef   = useRef(false)
   const autoTimer = useRef<ReturnType<typeof setInterval> | null>(null)
   const cycleRef  = useRef(0)
   const booted    = useRef(false)
 
-  // Uptime ticker
   useEffect(() => {
     const t = setInterval(() => setStats(s => ({ ...s, uptime: s.uptime + 1 })), 1000)
     return () => clearInterval(t)
@@ -43,32 +37,23 @@ export function useAgent() {
     setLogs(prev => [...prev.slice(-80), { id: uid(), timestamp: fmtTime(), message, type, agent }])
   }, [])
 
-  const updateStep = useCallback((step: AgentStep) => {
-    setSteps(prev => ({ ...prev, [step.agent]: step }))
-  }, [])
-
   const runCycle = useCallback(async () => {
     if (status === 'running') return
     setStatus('running')
     setSteps({})
     addLog('─── Agent cycle started ───', 'info')
-
     try {
       const res = await fetch('/api/agent/cycle', { method: 'POST' })
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const data = await res.json()
       if (!data.success) throw new Error(data.error)
-
       const { result, steps: apiSteps }: { result: AgentCycleResult; steps: AgentStep[] } = data
-
-      for (const step of apiSteps) {
-        updateStep(step)
-        addLog(step.message, step.status === 'done' ? 'success' : step.status === 'error' ? 'error' : 'info', step.agent)
+      for (const s of apiSteps) {
+        setSteps(prev => ({ ...prev, [s.agent]: s }))
+        addLog(s.message, s.status === 'done' ? 'success' : s.status === 'error' ? 'error' : 'info', s.agent)
         await new Promise(r => setTimeout(r, 180))
       }
-
       setLastResult(result)
-
       setApyHistory(prev => {
         const n = { ...prev }
         result.marketData.markets.forEach((m: { id: string; apy: number }) => {
@@ -76,22 +61,22 @@ export function useAgent() {
         })
         return n
       })
-
       cycleRef.current++
-      const executed = result.execution.executed
+      const exec = result.execution.executed
       setStats(prev => ({
         ...prev,
         cycleCount: cycleRef.current,
-        totalTx: prev.totalTx + (executed ? 2 : 0),
-        totalYieldGained: executed ? +(prev.totalYieldGained + result.decision.apyDelta * 0.01).toFixed(4) : prev.totalYieldGained,
+        totalTx: prev.totalTx + (exec ? 2 : 0),
+        totalYieldGained: exec
+          ? +(prev.totalYieldGained + result.decision.apyDelta * 0.01).toFixed(4)
+          : prev.totalYieldGained,
         totalGasUsed: prev.totalGasUsed + (result.execution.gasUsed || 0),
         lastCycleAt: Date.now(),
-        rebalanceCount: prev.rebalanceCount + (executed ? 1 : 0),
-        holdCount: prev.holdCount + (executed ? 0 : 1),
+        rebalanceCount: prev.rebalanceCount + (exec ? 1 : 0),
+        holdCount: prev.holdCount + (exec ? 0 : 1),
         bestApy: Math.max(prev.bestApy, result.decision.to.apy),
         currentProtocol: result.decision.to.name,
       }))
-
       setHistory(prev => [{
         cycleId: result.cycleId,
         timestamp: result.marketData.timestamp,
@@ -103,26 +88,25 @@ export function useAgent() {
         txHash: result.execution.depositTx,
         gasUsed: result.execution.gasUsed,
       }, ...prev].slice(0, 50))
-
-      addLog(executed
-        ? `✓ Rebalanced → ${result.decision.to.name} · +${result.decision.apyDelta}% APY`
-        : `Hold · ${result.decision.reasoning.slice(0, 70)}...`,
-        executed ? 'success' : 'warn'
+      addLog(
+        exec
+          ? `✓ Rebalanced → ${result.decision.to.name} · +${result.decision.apyDelta}% APY`
+          : `Hold · ${result.decision.reasoning.slice(0, 70)}...`,
+        exec ? 'success' : 'warn'
       )
     } catch (err) {
       addLog(`Error: ${err instanceof Error ? err.message : 'Unknown error'}`, 'error')
       setStatus('error')
       return
     }
-
     setStatus('idle')
     addLog('─── Cycle complete ───', 'info')
-  }, [status, addLog, updateStep])
+  }, [status, addLog])
 
   const toggleAutoMode = useCallback(() => {
     const next = !autoRef.current
     autoRef.current = next
-    setAutoModeState(next)
+    setAutoMode(next)
     if (next) {
       addLog('Auto-mode enabled · cycling every 8s', 'success')
       autoTimer.current = setInterval(() => { if (autoRef.current) runCycle() }, 8000)
@@ -132,14 +116,12 @@ export function useAgent() {
     }
   }, [addLog, runCycle])
 
-  // Boot logs
   useEffect(() => {
     if (booted.current) return
     booted.current = true
-    addLog('Somnia Agentic L1 node connected · Chain ID 50312', 'success')
+    addLog('Somnia Agentic L1 connected · Chain ID 50312', 'success')
     addLog('RPC: dream-rpc.somnia.network', 'info')
-    addLog('Orchestrator initialized · 3 sub-agents ready', 'success')
-    addLog('DataAgent · DecisionAgent · ExecutorAgent online', 'info')
+    addLog('Orchestrator ready · DataAgent · DecisionAgent · ExecutorAgent', 'success')
   }, [addLog])
 
   useEffect(() => () => { if (autoTimer.current) clearInterval(autoTimer.current) }, [])
@@ -147,7 +129,7 @@ export function useAgent() {
   return {
     status, autoMode, steps, logs, stats, lastResult, history, apyHistory,
     runCycle, toggleAutoMode,
-    clearLogs: useCallback(() => setLogs([]), []),
+    clearLogs:    useCallback(() => setLogs([]), []),
     clearHistory: useCallback(() => setHistory([]), []),
   }
 }
