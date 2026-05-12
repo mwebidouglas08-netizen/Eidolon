@@ -5,61 +5,35 @@ interface Props { result: AgentCycleResult | null }
 export default function DecisionCard({ result }: Props) {
   if (!result) return null
   const { decision, execution } = result
-
   const isRebalance = decision.action === 'REBALANCE'
-
   return (
-    <div className="card p-4 animate-fade-slide">
+    <div className="card p-4">
       <div className="text-[10px] text-muted tracking-widest font-mono mb-3">DECISION OUTPUT</div>
-
-      {/* Action + Confidence */}
       <div className="grid grid-cols-2 gap-2 mb-3">
-        <div className="bg-navy-800 rounded-lg p-3">
-          <div className="text-[9px] text-muted tracking-widest mb-1">ACTION</div>
-          <div className={`text-lg font-mono font-semibold ${isRebalance ? 'text-gold-light' : 'text-muted'}`}>
-            {decision.action}
+        {[
+          { label: 'ACTION',     value: decision.action,                       color: isRebalance ? '#E8943A' : '#7B9AB0', big: true },
+          { label: 'CONFIDENCE', value: `${decision.confidence}%`,             color: '#E8EDF2', big: true },
+          { label: 'APY DELTA',  value: `+${decision.apyDelta}%`,              color: decision.apyDelta > 0 ? '#1D9E75' : '#E24B4A', big: true },
+          { label: 'BREAK-EVEN', value: `${decision.breakEvenDays}d`,         color: '#E8EDF2', big: true },
+        ].map(({ label, value, color }) => (
+          <div key={label} style={{ background: '#0F2034', borderRadius: 8, padding: '10px 12px' }}>
+            <div className="text-[9px] text-muted tracking-widest mb-1 font-mono">{label}</div>
+            <div className="text-base font-mono font-semibold" style={{ color }}>{value}</div>
           </div>
-        </div>
-        <div className="bg-navy-800 rounded-lg p-3">
-          <div className="text-[9px] text-muted tracking-widest mb-1">CONFIDENCE</div>
-          <div className="text-lg font-mono font-semibold text-offwhite">{decision.confidence}%</div>
-          <div className="progress-bar mt-1.5">
-            <div className="progress-fill" style={{ width: `${decision.confidence}%`, background: '#C17B2E' }} />
-          </div>
-        </div>
-        <div className="bg-navy-800 rounded-lg p-3">
-          <div className="text-[9px] text-muted tracking-widest mb-1">APY DELTA</div>
-          <div className={`text-lg font-mono font-semibold ${decision.apyDelta > 0 ? 'text-mint' : 'text-red-400'}`}>
-            +{decision.apyDelta}%
-          </div>
-        </div>
-        <div className="bg-navy-800 rounded-lg p-3">
-          <div className="text-[9px] text-muted tracking-widest mb-1">BREAK-EVEN</div>
-          <div className="text-lg font-mono font-semibold text-offwhite">{decision.breakEvenDays}d</div>
-        </div>
+        ))}
       </div>
-
-      {/* Route */}
-      <div className="bg-navy-800 rounded-lg p-3 mb-3 flex items-center gap-3">
-        <div className="text-[10px] text-muted font-mono flex-1 text-right">{decision.from.name}</div>
-        <div className="flex items-center gap-1 text-gold">
-          <div className="w-8 h-px bg-gold/40" />
-          <span className="text-xs">→</span>
-          <div className="w-8 h-px bg-gold/40" />
-        </div>
-        <div className="text-[10px] text-mint font-mono font-medium flex-1">{decision.to.name}</div>
+      <div style={{ background: '#0F2034', borderRadius: 8, padding: '10px 12px', marginBottom: 10 }} className="flex items-center gap-3">
+        <span className="text-[10px] text-muted font-mono flex-1 text-right">{decision.from.name}</span>
+        <span style={{ color: '#C17B2E' }}>→</span>
+        <span className="text-[10px] font-mono font-medium flex-1" style={{ color: '#1D9E75' }}>{decision.to.name}</span>
       </div>
-
-      {/* Reasoning */}
-      <div className="bg-navy-800/60 rounded-lg p-3 text-[11px] text-muted font-mono leading-relaxed border-l-2 border-gold/30">
+      <div className="text-[11px] text-muted font-mono leading-relaxed p-3 rounded-lg" style={{ background: 'rgba(15,32,52,0.6)', borderLeft: '2px solid rgba(193,123,46,0.4)' }}>
         💡 {decision.reasoning}
       </div>
-
-      {/* Execution Result */}
       {execution.executed && (
-        <div className="mt-3 border border-mint/20 rounded-lg p-3 bg-mint/5">
-          <div className="text-[9px] text-mint tracking-widest font-mono mb-2">✓ EXECUTED ON-CHAIN</div>
-          <div className="space-y-1.5">
+        <div className="mt-3 p-3 rounded-lg" style={{ border: '0.5px solid rgba(29,158,117,0.3)', background: 'rgba(29,158,117,0.05)' }}>
+          <div className="text-[9px] tracking-widest font-mono mb-2" style={{ color: '#1D9E75' }}>✓ EXECUTED ON-CHAIN</div>
+          <div className="grid grid-cols-1 gap-1.5">
             <div>
               <div className="text-[9px] text-muted mb-0.5">WITHDRAW TX</div>
               <div className="tx-hash">{execution.withdrawTx}</div>
@@ -68,7 +42,7 @@ export default function DecisionCard({ result }: Props) {
               <div className="text-[9px] text-muted mb-0.5">DEPOSIT TX</div>
               <div className="tx-hash">{execution.depositTx}</div>
             </div>
-            <div className="flex gap-4 text-[10px] text-muted mt-2 font-mono">
+            <div className="flex gap-4 text-[10px] text-muted mt-1 font-mono">
               <span>Block #{execution.blockConfirmed?.toLocaleString()}</span>
               <span>Gas: {execution.gasUsed?.toLocaleString()}</span>
             </div>
