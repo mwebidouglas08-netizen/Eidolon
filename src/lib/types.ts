@@ -1,74 +1,97 @@
-// ─── Somnia L1 Client ─────────────────────────────────────────────────────────
-// Connects to Somnia Devnet: https://dream-rpc.somnia.network (Chain ID: 50312)
-
-import { Protocol, Market } from './types'
-
-export const SOMNIA_CONFIG = {
-  rpc: process.env.NEXT_PUBLIC_SOMNIA_RPC || 'https://dream-rpc.somnia.network',
-  chainId: parseInt(process.env.NEXT_PUBLIC_CHAIN_ID || '50312'),
-  chainName: process.env.NEXT_PUBLIC_CHAIN_NAME || 'Somnia Devnet',
-  symbol: 'SMT',
-  blockExplorer: 'https://shannon-explorer.somnia.network',
-  blockTime: 400,
+export interface Protocol {
+  id: string
+  name: string
+  baseApy: number
+  tvl: number
+  address: string
 }
 
-export const PROTOCOLS: Protocol[] = [
-  { id: 'somnia_swap', name: 'SomniaSwap',  baseApy: 18.2, tvl: 12.4, address: '0x1111111111111111111111111111111111111111' },
-  { id: 'dream_lend',  name: 'DreamLend',   baseApy: 12.6, tvl: 8.7,  address: '0x2222222222222222222222222222222222222222' },
-  { id: 'ether_vault', name: 'EtherVault',  baseApy: 9.8,  tvl: 22.1, address: '0x3333333333333333333333333333333333333333' },
-  { id: 'flux_fi',     name: 'FluxFi',      baseApy: 24.1, tvl: 5.2,  address: '0x4444444444444444444444444444444444444444' },
-  { id: 'nexus_dao',   name: 'NexusDAO',    baseApy: 31.5, tvl: 3.8,  address: '0x5555555555555555555555555555555555555555' },
-]
-
-function rand(min: number, max: number) { return Math.random() * (max - min) + min }
-function randHex(len: number) {
-  return Array.from({ length: len }, () => Math.floor(Math.random() * 16).toString(16)).join('')
+export interface Market extends Protocol {
+  apy: number
+  utilization: number
+  tvlChange: number
+  riskScore: 'LOW' | 'MEDIUM' | 'HIGH'
 }
 
-export class SomniaClient {
-  private blockNumber = 4_821_334
-  private gasPrice = 1.2
-
-  async getBlockNumber(): Promise<number> {
-    this.blockNumber += Math.floor(rand(1, 4))
-    return this.blockNumber
-  }
-
-  async getGasPrice(): Promise<number> {
-    this.gasPrice = +rand(0.9, 1.9).toFixed(2)
-    return this.gasPrice
-  }
-
-  async getBalance(_address: string): Promise<number> {
-    return +rand(9.5, 11.5).toFixed(4)
-  }
-
-  async getMarketData(): Promise<Market[]> {
-    return PROTOCOLS.map(p => {
-      const apy = +(p.baseApy + rand(-3.5, 3.5)).toFixed(2)
-      const utilization = +rand(0.38, 0.93).toFixed(2)
-      return {
-        ...p,
-        apy,
-        utilization,
-        tvlChange: +rand(-5, 8).toFixed(2),
-        riskScore: (utilization > 0.85 ? 'HIGH' : utilization > 0.65 ? 'MEDIUM' : 'LOW') as 'LOW' | 'MEDIUM' | 'HIGH',
-      }
-    })
-  }
-
-  async sendTransaction(_tx: { to: string; data: string; value: string }): Promise<{
-    hash: string
-    blockNumber: number
-    gasUsed: number
-  }> {
-    await new Promise(r => setTimeout(r, 300 + rand(100, 300)))
-    return {
-      hash: '0x' + randHex(64),
-      blockNumber: this.blockNumber,
-      gasUsed: Math.floor(rand(18000, 52000)),
-    }
-  }
+export interface MarketData {
+  blockNumber: number
+  gasPrice: number
+  balance: number
+  markets: Market[]
+  timestamp: number
+  chainId: number
 }
 
-export const somniaClient = new SomniaClient()
+export interface AgentDecision {
+  action: 'REBALANCE' | 'HOLD'
+  from: Market
+  to: Market
+  apyDelta: number
+  riskScore: 'LOW' | 'MEDIUM' | 'HIGH'
+  confidence: number
+  breakEvenDays: number
+  gasCost: number
+  reasoning: string
+  markets: Market[]
+}
+
+export interface ExecutionResult {
+  executed: boolean
+  withdrawTx?: string
+  depositTx?: string
+  gasUsed?: number
+  blockConfirmed?: number
+  reason?: string
+  error?: string
+}
+
+export interface AgentCycleResult {
+  marketData: MarketData
+  decision: AgentDecision
+  execution: ExecutionResult
+  cycleId: string
+  duration: number
+}
+
+export interface AgentStep {
+  agent: 'DataAgent' | 'DecisionAgent' | 'ExecutorAgent'
+  status: 'idle' | 'running' | 'done' | 'error'
+  message: string
+  data?: unknown
+  timestamp: number
+}
+
+export interface LogEntry {
+  id: string
+  timestamp: string
+  message: string
+  type: 'info' | 'success' | 'warn' | 'error'
+  agent?: string
+}
+
+export interface AgentStats {
+  cycleCount: number
+  totalTx: number
+  totalYieldGained: number
+  totalGasUsed: number
+  uptime: number
+  lastCycleAt: number | null
+  rebalanceCount: number
+  holdCount: number
+  bestApy: number
+  currentProtocol: string
+}
+
+export interface HistoryEntry {
+  cycleId: string
+  timestamp: number
+  action: 'REBALANCE' | 'HOLD'
+  from: string
+  to: string
+  apyDelta: number
+  confidence: number
+  txHash?: string
+  gasUsed?: number
+}
+
+export type AgentStatus = 'idle' | 'running' | 'paused' | 'error'
