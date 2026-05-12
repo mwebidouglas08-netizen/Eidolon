@@ -9,28 +9,21 @@ export default function ChainStatus({ stats }: Props) {
       <div className="text-[10px] text-muted tracking-widest font-mono mb-3">CHAIN STATUS</div>
       <div className="space-y-2 font-mono text-[11px]">
         {[
-          { label: 'Network',      value: SOMNIA_CONFIG.chainName,                    color: 'text-mint' },
-          { label: 'Chain ID',     value: String(SOMNIA_CONFIG.chainId),              color: 'text-offwhite' },
-          { label: 'Block Time',   value: `${SOMNIA_CONFIG.blockTime}ms`,             color: 'text-steel' },
-          { label: 'Symbol',       value: SOMNIA_CONFIG.symbol,                       color: 'text-gold-light' },
-          { label: 'Last Cycle',   value: stats.lastCycleAt
-              ? `${Math.floor((Date.now() - stats.lastCycleAt) / 1000)}s ago`
-              : 'Never',                                                               color: 'text-muted' },
+          { label: 'Network',    value: SOMNIA_CONFIG.chainName, color: '#1D9E75' },
+          { label: 'Chain ID',   value: String(SOMNIA_CONFIG.chainId), color: '#E8EDF2' },
+          { label: 'Block Time', value: `${SOMNIA_CONFIG.blockTime}ms`, color: '#4A9EBF' },
+          { label: 'Symbol',     value: SOMNIA_CONFIG.symbol, color: '#E8943A' },
+          { label: 'Last Cycle', value: stats.lastCycleAt ? `${Math.floor((Date.now() - stats.lastCycleAt) / 1000)}s ago` : 'Never', color: '#7B9AB0' },
         ].map(({ label, value, color }) => (
-          <div key={label} className="flex justify-between border-b border-navy-600/40 pb-1.5">
+          <div key={label} className="flex justify-between pb-1.5" style={{ borderBottom: '0.5px solid rgba(27,42,59,0.6)' }}>
             <span className="text-muted">{label}</span>
-            <span className={color}>{value}</span>
+            <span style={{ color }}>{value}</span>
           </div>
         ))}
-
-        <a
-          href={SOMNIA_CONFIG.blockExplorer}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-1 text-steel hover:text-offwhite transition-colors pt-1"
-        >
-          <span>Block Explorer</span>
-          <span>↗</span>
+        <a href={SOMNIA_CONFIG.blockExplorer} target="_blank" rel="noopener noreferrer"
+          className="flex items-center gap-1 pt-1 transition-colors"
+          style={{ color: '#4A9EBF' }}>
+          <span>Block Explorer</span><span>↗</span>
         </a>
       </div>
     </div>
