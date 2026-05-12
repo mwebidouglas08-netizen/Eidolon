@@ -1,6 +1,3 @@
-// ─── Somnia L1 Client ─────────────────────────────────────────────────────────
-// Connects to Somnia Devnet: https://dream-rpc.somnia.network (Chain ID: 50312)
-
 import { Protocol, Market } from './types'
 
 export const SOMNIA_CONFIG = {
@@ -13,11 +10,11 @@ export const SOMNIA_CONFIG = {
 }
 
 export const PROTOCOLS: Protocol[] = [
-  { id: 'somnia_swap', name: 'SomniaSwap',  baseApy: 18.2, tvl: 12.4, address: '0x1111111111111111111111111111111111111111' },
-  { id: 'dream_lend',  name: 'DreamLend',   baseApy: 12.6, tvl: 8.7,  address: '0x2222222222222222222222222222222222222222' },
-  { id: 'ether_vault', name: 'EtherVault',  baseApy: 9.8,  tvl: 22.1, address: '0x3333333333333333333333333333333333333333' },
-  { id: 'flux_fi',     name: 'FluxFi',      baseApy: 24.1, tvl: 5.2,  address: '0x4444444444444444444444444444444444444444' },
-  { id: 'nexus_dao',   name: 'NexusDAO',    baseApy: 31.5, tvl: 3.8,  address: '0x5555555555555555555555555555555555555555' },
+  { id: 'somnia_swap', name: 'SomniaSwap', baseApy: 18.2, tvl: 12.4, address: '0x1111111111111111111111111111111111111111' },
+  { id: 'dream_lend',  name: 'DreamLend',  baseApy: 12.6, tvl: 8.7,  address: '0x2222222222222222222222222222222222222222' },
+  { id: 'ether_vault', name: 'EtherVault', baseApy: 9.8,  tvl: 22.1, address: '0x3333333333333333333333333333333333333333' },
+  { id: 'flux_fi',     name: 'FluxFi',     baseApy: 24.1, tvl: 5.2,  address: '0x4444444444444444444444444444444444444444' },
+  { id: 'nexus_dao',   name: 'NexusDAO',   baseApy: 31.5, tvl: 3.8,  address: '0x5555555555555555555555555555555555555555' },
 ]
 
 function rand(min: number, max: number) { return Math.random() * (max - min) + min }
@@ -26,7 +23,7 @@ function randHex(len: number) {
 }
 
 export class SomniaClient {
-  private blockNumber = 4_821_334
+  private blockNumber = 4821334
   private gasPrice = 1.2
 
   async getBlockNumber(): Promise<number> {
@@ -52,15 +49,13 @@ export class SomniaClient {
         apy,
         utilization,
         tvlChange: +rand(-5, 8).toFixed(2),
-        riskScore: (utilization > 0.85 ? 'HIGH' : utilization > 0.65 ? 'MEDIUM' : 'LOW') as 'LOW' | 'MEDIUM' | 'HIGH',
+        riskScore: (utilization > 0.85 ? 'HIGH' : utilization > 0.65 ? 'MEDIUM' : 'LOW') as Market['riskScore'],
       }
     })
   }
 
   async sendTransaction(_tx: { to: string; data: string; value: string }): Promise<{
-    hash: string
-    blockNumber: number
-    gasUsed: number
+    hash: string; blockNumber: number; gasUsed: number
   }> {
     await new Promise(r => setTimeout(r, 300 + rand(100, 300)))
     return {
