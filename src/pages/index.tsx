@@ -9,9 +9,30 @@ import DecisionCard from '../components/dashboard/DecisionCard'
 import AgentLog from '../components/dashboard/AgentLog'
 import HistoryTable from '../components/dashboard/HistoryTable'
 import ChainStatus from '../components/dashboard/ChainStatus'
-import HexEmblem from '../components/ui/HexEmblem'
 
 const ApyChart = dynamic(() => import('../components/dashboard/ApyChart'), { ssr: false })
+
+function HexLogo({ running, size = 64 }: { running: boolean; size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 100 100"
+      style={{ animation: running ? 'pulse 2s cubic-bezier(0.4,0,0.6,1) infinite' : undefined }}>
+      <defs>
+        <radialGradient id="hg" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#C17B2E" stopOpacity="0.3" />
+          <stop offset="100%" stopColor="#C17B2E" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      <ellipse cx="50" cy="50" rx="45" ry="45" fill="url(#hg)" opacity={running ? 1 : 0.4} />
+      <polygon points="50,8 88,29 88,71 50,92 12,71 12,29" fill="#0D1B2A" stroke="#C17B2E" strokeWidth="1.5" opacity="0.9" />
+      <polygon points="50,18 80,35 80,65 50,82 20,65 20,35" fill="#162232" stroke="#E8943A" strokeWidth="0.8" opacity="0.5" />
+      <polygon points="50,28 72,40 72,62 50,74 28,62 28,40" fill="#0D1B2A" stroke="#C17B2E" strokeWidth="0.6" opacity="0.6" />
+      <circle cx="50" cy="12" r="3" fill="#378ADD" />
+      <circle cx="81" cy="68" r="3" fill="#C17B2E" />
+      <circle cx="19" cy="68" r="3" fill="#1D9E75" />
+      <text x="50" y="57" textAnchor="middle" fontSize="24" fill="#C17B2E" opacity="0.9" fontFamily="serif">⬡</text>
+    </svg>
+  )
+}
 
 export default function Home() {
   const {
@@ -42,9 +63,8 @@ export default function Home() {
 
         <main style={{ maxWidth: 1280, margin: '0 auto', padding: '24px 16px', display: 'flex', flexDirection: 'column', gap: 16, position: 'relative', zIndex: 1 }}>
 
-          {/* Hero */}
           <div className="card p-5" style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-            <HexEmblem running={running} size={72} />
+            <HexLogo running={running} size={72} />
             <div style={{ flex: 1 }}>
               <h1 style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 24, fontWeight: 700, color: '#E8EDF2', letterSpacing: '0.02em', textShadow: '0 0 20px rgba(193,123,46,0.4)' }}>
                 EIDOLON
@@ -56,20 +76,11 @@ export default function Home() {
                 DataAgent · DecisionAgent · ExecutorAgent
               </p>
             </div>
-            <div style={{ display: 'none', flexDirection: 'column', gap: 4, textAlign: 'right', fontFamily: 'monospace', fontSize: 11 }} className="sm-flex">
-              <span style={{ color: '#7B9AB0' }}>dream-rpc.somnia.network</span>
-              <span style={{ color: '#4A9EBF' }}>400ms block time</span>
-              <span style={{ color: 'rgba(193,123,46,0.6)' }}>Agentic L1 Infrastructure</span>
-            </div>
           </div>
 
-          {/* Stats */}
           <StatsBar stats={stats} />
 
-          {/* 3-col grid */}
           <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: 16 }}>
-
-            {/* Left column */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <AgentPipeline
                 steps={steps}
@@ -83,7 +94,6 @@ export default function Home() {
               <ChainStatus stats={stats} />
             </div>
 
-            {/* Right column */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <MarketTable result={lastResult} apyHistory={apyHistory} />
               <ApyChart apyHistory={apyHistory} result={lastResult} />
@@ -92,7 +102,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Footer */}
           <div style={{ textAlign: 'center', fontFamily: 'monospace', fontSize: 10, color: 'rgba(123,154,176,0.35)', borderTop: '0.5px solid rgba(27,42,59,0.4)', paddingTop: 16 }}>
             EIDOLON · Autonomous Yield Intelligence · Somnia Agentic L1 · Chain 50312 · Built for the Somnia Hackathon
           </div>
